@@ -126,7 +126,7 @@ function wkhtmltopdf(input, options, callback) {
 
   var timeout
   if (options.timeout) {
-    timeout = setTimeout( function () {
+    timeout = setTimeout(function () {
       var timeoutError = new Error('Child process terminated due to timeout');
       timeoutError.code = '_EXIT_TIMEOUT';
       handleError(timeoutError);
@@ -192,11 +192,14 @@ function wkhtmltopdf(input, options, callback) {
     } else if (err) {
       errObj = new Error(err);
     }
-    errObj.args = args;
-
     clearTimeout(timeout);
-    child.removeAllListeners('exit');
-    child.kill();
+    if(spawnOptions.detached) {
+      // this is the way closing child process and his children, when is spawned detached
+      process.kill(-child.pid);
+    } else {
+      child.removeAllListeners('exit');
+      child.kill();
+    }
     // call the callback if there is one
 
     if (callback) {
